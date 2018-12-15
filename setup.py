@@ -91,11 +91,6 @@ setup(
     ],
     zip_safe=False,
     cmdclass={'egg_info': tagger},
-    entry_points={
-        'console_scripts': [
-            "cwl-airflow-tester=cwl_airflow_parser.tester:main"
-        ]
-    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
