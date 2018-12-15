@@ -1,12 +1,14 @@
 import logging
 import psutil
+
 from airflow import configuration
 from airflow.models import DAG, DagRun, DagStat, TaskInstance
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.utils.db import provide_session
 from airflow.utils.state import State
-from cwl_airflow_parser.cwlutils import post_status_info
+
+from cwl_airflow_parser.utils.process import post_process_status
 
 
 logger = logging.getLogger(__name__)
@@ -65,8 +67,8 @@ def clean_dag_run(**context):
 
 dag = DAG(dag_id="clean_dag_run",
           start_date=days_ago(1),
-          on_failure_callback=post_status_info,
-          on_success_callback=post_status_info,
+          on_failure_callback=post_process_status,
+          on_success_callback=post_process_status,
           schedule_interval=None)
 
 
@@ -74,5 +76,3 @@ run_this = PythonOperator(task_id='clean_dag_run',
                           python_callable=clean_dag_run,
                           provide_context=True,
                           dag=dag)
-
-

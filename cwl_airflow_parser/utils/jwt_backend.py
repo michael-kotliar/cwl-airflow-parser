@@ -1,7 +1,11 @@
 import jwt
+import logging
 from functools import wraps
 from flask import request, Response
 from airflow.models import Variable
+
+
+logger = logging.getLogger(__name__)
 
 
 client_auth = None

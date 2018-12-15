@@ -22,6 +22,7 @@
 
  ****************************************************************************"""
 
-from .cwldag import CWLDAG
-from .cwlstepoperator import CWLStepOperator
-from .operators import CWLJobDispatcher, CWLJobGatherer
+from cwl_airflow_parser.dag_components.cwldag import CWLDAG
+from cwl_airflow_parser.dag_components.operators.cwlstepoperator import CWLStepOperator
+from cwl_airflow_parser.dag_components.operators.cwljobdispatcher import CWLJobDispatcher
+from cwl_airflow_parser.dag_components.operators.cwljobgatherer import CWLJobGatherer
