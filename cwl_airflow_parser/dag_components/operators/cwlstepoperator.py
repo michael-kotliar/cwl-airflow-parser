@@ -75,9 +75,9 @@ class CWLStepOperator(BaseOperator):
         for inp in tool.tool["inputs"]:
             input_id = shortname(inp["id"]).split("/")[-1]
             logger.debug(f"""Process input {input_id} \n{json.dumps(inp, indent=4)}""")
-            source_field = inp["source"] if it_is_workflow else inp.get("id")
 
             try:
+                source_field = inp["source"] if it_is_workflow else inp.get("id")
                 source_ids = [shortname(s) for s in source_field] if isinstance(source_field, list) else [shortname(source_field)]
             except Exception:
                 source_ids = []
