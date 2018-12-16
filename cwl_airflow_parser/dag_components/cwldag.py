@@ -64,7 +64,7 @@ class CWLDAG(DAG):
                                              schedule_interval=schedule_interval, *args, **kwargs)
 
     def create(self):
-        if self.cwlwf["class"] == "CommandLineTool":
+        if self.cwlwf["class"] in ["CommandLineTool", "ExpressionTool"]:
             cwl_task = CWLStepOperator(task_id=self.dag_id,
                                        dag=self)
         else:
