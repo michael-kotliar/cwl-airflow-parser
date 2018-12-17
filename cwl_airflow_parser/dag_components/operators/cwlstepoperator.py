@@ -55,10 +55,10 @@ class CWLStepOperator(BaseOperator):
     def execute(self, context):
         logger.info("Start step execution")
 
-        tool, it_is_workflow = load_cwl(cwl_file=self.dag.default_args["cwl_workflow"],
-                                        arguments=self.dag.default_args,
-                                        step_id=self.task_id)
+        workflow, it_is_workflow = load_cwl(cwl_file=self.dag.default_args["cwl_workflow"],
+                                        arguments=self.dag.default_args)
 
+        workflow_step = [s for s in workflow.steps if self.task_id == shortname(s.id)][0] if it_is_workflow else workflow
 
         up_task_ids = list(set([t.task_id for t in self.upstream_list] + ([self.reader_task_id] if self.reader_task_id else [])))
         all_collected_outputs = {}
@@ -72,7 +72,7 @@ class CWLStepOperator(BaseOperator):
 
         job = {}
 
-        for inp in tool.tool["inputs"]:
+        for inp in workflow_step.tool["inputs"]:
             input_id = shortname(inp["id"]).split("/")[-1]
             logger.debug(f"""Process input {input_id} \n{json.dumps(inp, indent=4)}""")
 
@@ -115,13 +115,13 @@ class CWLStepOperator(BaseOperator):
                 if k in _value_from:
                     return expression.do_eval(
                         _value_from[k], shortio,
-                        tool.tool.get("requirements", []),
+                        workflow.tool.get("requirements", []),
                         None, None, {}, context=v)
                 else:
                     return v
             return {k: value_from_func(k, v) for k, v in shortio.items()}
 
-        final_job = _post_scatter_eval(job, tool)
+        final_job = _post_scatter_eval(job, workflow_step)
 
         logger.info(f"""Final job \n{json.dumps(final_job, indent=4)}""")
 
@@ -141,13 +141,13 @@ class CWLStepOperator(BaseOperator):
         runtimeContext = RuntimeContext(default_args)
         runtimeContext.make_fs_access = getdefault(runtimeContext.make_fs_access, StdFsAccess)
 
-        for inp in tool.tool["inputs"]:
+        for inp in workflow_step.tool["inputs"]:
             if inp.get("not_connected"):
                 del job[shortname(inp["id"].split("/")[-1])]
 
         _stderr = sys.stderr
         sys.stderr = sys.__stderr__
-        (tool_output, tool_status) = executor(tool.embedded_tool if it_is_workflow else tool,
+        (tool_output, tool_status) = executor(workflow_step.embedded_tool if it_is_workflow else workflow_step,
                                     job,
                                     runtimeContext,
                                     logger=logger)
@@ -161,7 +161,7 @@ class CWLStepOperator(BaseOperator):
 
         results = {}
 
-        for out in tool.tool["outputs"]:
+        for out in workflow_step.tool["outputs"]:
             out_id = shortname(out["id"])
             jobout_id = out_id.split("/")[-1]
             try:
